@@ -206,13 +206,13 @@ est_result <- generate_dataset_general_version(ds_factors,
 est_rmse_ci_dt <- est_result$result_dt
 est_rmse_ci_dt$X_decay_level <- as.factor(est_rmse_ci_dt$X_decay_level)
 est_rmse_ci_dt$X_test_set_type <- as.factor(est_rmse_ci_dt$X_test_set_type)
-levels(est_rmse_ci_dt$X_test_set_type) <- paste0("test data: ", test_set_type_factor)
+levels(est_rmse_ci_dt$X_test_set_type) <- paste0("Testing Data: ", test_set_type_factor)
 
 
 ggplot(est_rmse_ci_dt, aes(x = X_decay_level, y = testing_RMSE)) +
   geom_boxplot() +
   scale_y_continuous(name = "Testing RMSE", trans = "log") +
-  scale_x_discrete(name = "Train Data Decay Level") +
+  scale_x_discrete(name = "Training Data Decay Level") +
   facet_grid(col = vars(X_test_set_type)) +
   theme_publish()
 

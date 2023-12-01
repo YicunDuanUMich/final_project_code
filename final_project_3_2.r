@@ -5,6 +5,10 @@ library(data.table)
 library(ggplot2)
 library(envalysis)
 
+f_0 <- function(X1, X2) {
+  return(rnorm(length(X1)))
+}
+
 f_1 <- function(X1, X2) {
   result <- X1 / (X2^2)
   result[which(is.nan(result))] <- 0
@@ -73,10 +77,10 @@ generate_y <- function(X, expected_beta, R2) {
 }
 
 noise_level_factor <- seq(0.0, 3.0, by = 0.5)
-R2_factor <- 0.25
+R2_factor <- 0.5
 sample_size_factor <- 100
 model_factor <- list(c(1, 1, 0))
-f_factor <- list(f_1, f_2, f_4, f_5, f_6, f_7, f_8)
+f_factor <- list(f_0, f_1, f_2, f_4, f_5, f_6, f_7, f_8)
 
 # without intercept
 generate_dataset_for_test_3_2 <- function(noise_levels, R2s, sample_sizes, models, fs,
@@ -158,7 +162,7 @@ ds <- generate_dataset_for_test_3_2(noise_levels = noise_level_factor,
                                      sample_sizes = sample_size_factor,
                                      models = model_factor,
                                      fs = f_factor,
-                                     reps = 500)
+                                     reps = 1000)
 
 calculate_sd_and_condition_number <- function(est_df) {
   est_dt <- as.data.table(est_df)
@@ -178,7 +182,7 @@ est_sd_ci_dt <- calculate_sd_and_condition_number(est_df)
 est_sd_ci_dt$X_noise_level <- as.factor(est_sd_ci_dt$X_noise_level)
 levels(est_sd_ci_dt$X_noise_level) <- as.character(noise_level_factor)
 est_sd_ci_dt$X_f <- as.factor(est_sd_ci_dt$X_f)
-levels(est_sd_ci_dt$X_f) <- c("X1 / (X2^2)", "X1 * X2", "X1^2 + X2^2",
+levels(est_sd_ci_dt$X_f) <- c("X3", "X1 / (X2^2)", "X1 * X2", "X1^2 + X2^2",
                               "X1^2 + X2^3", "X1^3 + X2^3", "exp(X1 + X2)",
                               "exp(X1)")
 
@@ -205,50 +209,53 @@ levels(est_sd_ci_dt$X_f) <- c("X1 / (X2^2)", "X1 * X2", "X1^2 + X2^2",
 # plot est sd of beta1
 second_y_axis_ratio <- max(est_sd_ci_dt$est_sd_beta1) / max(est_sd_ci_dt$mean_condition_number)
 ggplot(est_sd_ci_dt, aes(x = X_noise_level)) +
-  geom_col(mapping = aes(y = mean_condition_number * second_y_axis_ratio, fill = X_f),
+  geom_col(mapping = aes(y = mean_condition_number * second_y_axis_ratio / 3, fill = X_f),
            position = "dodge") +
   geom_point(mapping = aes(y = est_sd_beta1, color = X_f)) +
   geom_line(mapping = aes(y = est_sd_beta1, color = X_f, group = X_f)) +
-  scale_y_continuous(name = "Estimated Beta1 SD",
-                     sec.axis = sec_axis(~ . / second_y_axis_ratio,
-                                         name = "Condition Number")) +
+  scale_y_continuous(name = expression(paste("Estimated ", hat(beta)[1], " SD")),
+                     sec.axis = sec_axis(~ . / second_y_axis_ratio * 3,
+                                         name = expression(paste("Condition Number of ", bold(X))))) +
   scale_x_discrete(name = "Noise Level") +
   scale_color_discrete(name = "X3 =") +
   scale_fill_discrete(name = "X3 =") +
-  theme_publish()
+  theme_publish(base_size = 15, base_linewidth = 1)
 
 
 # plot est sd of beta2
 second_y_axis_ratio <- max(est_sd_ci_dt$est_sd_beta2) / max(est_sd_ci_dt$mean_condition_number)
 ggplot(est_sd_ci_dt, aes(x = X_noise_level)) +
-  geom_col(mapping = aes(y = mean_condition_number * second_y_axis_ratio, fill = X_f),
+  geom_col(mapping = aes(y = mean_condition_number * second_y_axis_ratio / 3, fill = X_f),
            position = "dodge") +
   geom_point(mapping = aes(y = est_sd_beta2, color = X_f)) +
   geom_line(mapping = aes(y = est_sd_beta2, color = X_f, group = X_f)) +
-  scale_y_continuous(name = "Estimated Beta2 SD",
-                     sec.axis = sec_axis(~ . / second_y_axis_ratio,
-                                         name = "Condition Number")) +
+  scale_y_continuous(name = expression(paste("Estimated ", hat(beta)[2], " SD")),
+                     sec.axis = sec_axis(~ . / second_y_axis_ratio * 3,
+                                         name = expression(paste("Condition Number of ", bold(X))))) +
   scale_x_discrete(name = "Noise Level") +
   scale_color_discrete(name = "X3 =") +
   scale_fill_discrete(name = "X3 =") +
-  theme_publish()
+  theme_publish(base_size = 15, base_linewidth = 1)
 
 # plot est sd of beta3
-second_y_axis_ratio <- max(est_sd_ci_dt$est_sd_beta3) / max(est_sd_ci_dt$mean_condition_number)
+second_y_axis_ratio <- max(est_sd_ci_dt$est_sd_beta2) / max(est_sd_ci_dt$mean_condition_number)
 ggplot(est_sd_ci_dt, aes(x = X_noise_level)) +
-  geom_col(mapping = aes(y = mean_condition_number * second_y_axis_ratio, fill = X_f),
+  geom_col(mapping = aes(y = mean_condition_number * second_y_axis_ratio / 3, fill = X_f),
            position = "dodge") +
   geom_point(mapping = aes(y = est_sd_beta3, color = X_f)) +
   geom_line(mapping = aes(y = est_sd_beta3, color = X_f, group = X_f)) +
-  scale_y_continuous(name = "Estimated Beta3 SD",
-                     sec.axis = sec_axis(~ . / second_y_axis_ratio,
-                                         name = "Condition Number")) +
+  scale_y_continuous(name = expression(paste("Estimated ", hat(beta)[3], " SD")),
+                     sec.axis = sec_axis(~ . / second_y_axis_ratio * 3,
+                                         name = expression(paste("Condition Number of ", bold(X))))) +
   scale_x_discrete(name = "Noise Level") +
   scale_color_discrete(name = "X3 =") +
   scale_fill_discrete(name = "X3 =") +
-  theme_publish()
+  theme_publish(base_size = 15, base_linewidth = 1)
 
 
-
+# labels = c(expression(X[3]), expression(X[1] %/% X[2]^2),
+#            expression(X[1] %*% X[2]), expression(X[1]^2 + X[2]^2),
+#            expression(X[1]^2 + X[2]^3)), expression(X[1]^3 + X[2]^3),
+#            expression(e^{X[1] + X[2]}), expression(e^{X[1]})
 
 
